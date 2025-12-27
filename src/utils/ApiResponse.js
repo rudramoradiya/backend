@@ -1,4 +1,6 @@
-// this file give  the formate of the response 
+// this file give  the formate of the response
+// to make the formate of the error and response we have to make the class instead of the function
+//here we also have to make the constructor  
 class ApiResponse{
     constructor(  
         statuscode,
