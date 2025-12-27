@@ -102,3 +102,11 @@ userSchema.methods.generateRefreshToken = async function (){
 export const User=mongoose.model("User",userSchema)
 
 // JWT is the bearer token = send the data if someone send the token
+
+
+
+//file uploading strategy:
+// first we have to take the file from the user using the nmulter
+// then store into the local storage 
+// using the cloudnery we can store the file into the server from the local storage 
+
