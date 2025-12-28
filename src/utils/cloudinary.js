@@ -6,9 +6,9 @@ import fs from "fs"
 
 cloudinary.config({ 
 
-        cloud_name:process.env.CLODINARY_CLOUD_NAME, 
-        api_key:process.env.CLODINARY_API_KEY, 
-        api_secret:process.env.CLODINARY_API_SECRET
+        cloud_name:process.env.CLOUDINARY_CLOUD_NAME, 
+        api_key:process.env.CLOUDINARY_API_KEY, 
+        api_secret:process.env.CLOUDINARY_API_SECRET
     });
 
 
@@ -20,18 +20,36 @@ const uploadFileToCloudinary= async (localFilePath)=>{
             resource_type:"auto"
         })
         //file has been uploaded successfully
-        console.log('file is uploaded at cloudinary',response.url);
+        // console.log('file is uploaded at cloudinary',response.url);
+
+         fs.unlinkSync(localFilePath)
+
+        //code from the chatgpt
+
+         // delete local file after success
+    // if (fs.existsSync(localFilePath)) {
+    //   fs.unlinkSync(localFilePath);
+    // }
 
         return response
         
 
         
     } catch (error) {
-        // if the file has issue in uploading into the server otherwise file is not uploading then unlink the file into the local storage 
+        // // if the file has issue in uploading into the server otherwise file is not uploading then unlink the file into the local storage 
         fs.unlinkSync(localFilePath)
-        //this command is remove the file which is temporary store into the localstorage 
+        // //this command is remove the file which is temporary store into the localstorage 
+
+        //code from the chatgpt
+
+    //    // delete local file if exists
+    // if (fs.existsSync(localFilePath)) {
+    //   fs.unlinkSync(localFilePath);
+    // }
+
+    return null;
     }
 
 }
 
-export {cloudinary}
+export {uploadFileToCloudinary}

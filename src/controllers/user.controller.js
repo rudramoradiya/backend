@@ -2,9 +2,11 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 import {ApiError} from "../utils/ApiError.js"
 import {User} from "../models/user.model.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
+import {uploadFileToCloudinary} from "../utils/cloudinary.js"
 
 // it give the controll of the user
-const registerUser=asyncHandler(async (req,res)=>{
+const registerUser = asyncHandler( async (req, res) => {
+    console.log("hi")
 
 //we have to register the user
     // step 1: get the data from the req body
@@ -19,19 +21,19 @@ const registerUser=asyncHandler(async (req,res)=>{
 
 
     // req.body ==>> if the data is coming from the form or json file then we get like this 
-    const {username,email,fullName,password}=req.body
-    console.log("email:",email) 
+    const {username,email,fullName,password}=req.body;
+    // console.log("email:",email) 
 
     // check each field that not empty 
 
     //here we have to apply the if else condition for all the field this is not allow in the production level code
-    if(fullName==""){
-        throw new ApiError(400,"enter the valid fullName")
-    }
+    // if(fullName==""){
+    //     throw new ApiError(400,"enter the valid fullName")
+    // }
 
     // we use the some filtering to  do the validation on the each field
 
-    if (
+    if(
         [username,email,fullName,password].some((field)=>field?.trim()==="")
     ){
        throw new ApiError(400,"all the fields are required")
@@ -39,11 +41,17 @@ const registerUser=asyncHandler(async (req,res)=>{
 
     //check user exists or not 
 
-    const existedUser= User.findOne({
-        $or: [{username},{email}]   //purpose : if username or email found it throw the error
+    const existedUser=await User.findOne({
+        $or: [{ username },{ email }]   //purpose : if username or email found it throw the error
     })
+    // console.log('existeed user',existedUser);
+    
+
+    console.log("Existing user:", existedUser);
 
     if(existedUser){
+        // ADD THIS LINE:
+    // console.log("MATCH FOUND IN DB:", existedUser);
         throw new ApiError(409,"user is already exists")
     }
     
@@ -51,16 +59,32 @@ const registerUser=asyncHandler(async (req,res)=>{
     // step 4: check for images and check for the avatar
 
     const avatarLocalPath=req.files?.avatar[0]?.path;
-    const coverImageLocalPath=req.files?.coverImage[0]?.path;
+    // const coverImageLocalPath=req.files?.coverImage[0]?.path;
 
-    const avatar_coverImage=User.findOne({
-        $or:[{avatarLocalPath},{coverImageLocalPath}]
-    })
+    // const avatar_coverImage=await User.findOne({
+    //     $or:[{avatarLocalPath},{coverImageLocalPath}]
+    // })
 
-    if(avatar_coverImage){
-        throw new ApiError(400,"avatar or coverImage required")
+    // if(avatar_coverImage){
+    //     throw new ApiError(400,"avatar or coverImage required")
         
+    // }/
+
+
+    //below code written for to check how it handle the error when coverimage is not given
+
+    let coverImageLocalPath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path
     }
+
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar file is required")
+    }
+
+    
+
+
     // console.log(req.body);
     
 
@@ -68,6 +92,9 @@ const registerUser=asyncHandler(async (req,res)=>{
 
     
     const avatar= await uploadFileToCloudinary(avatarLocalPath)
+//     const coverImage = coverImageLocalPath
+//   ? await uploadFileToCloudinary(coverImageLocalPath)
+//   : null
     const coverImage= await uploadFileToCloudinary(coverImageLocalPath)
 
     if(!avatar){
@@ -79,7 +106,7 @@ const registerUser=asyncHandler(async (req,res)=>{
     const user=await User.create({
         fullName,
         avatar:avatar.url,
-        coverImage:coverImage.url,
+        coverImage:coverImage?.url||"",
         password,
         email,
         username:username.toLowerCase()
@@ -88,8 +115,8 @@ const registerUser=asyncHandler(async (req,res)=>{
      // step 7: remove the password and refresh token from response 
     //check user is created or not 
 
-    const createdUser=User.findOne(user._id).select(
-        "-password -refreshToken"
+    const createdUser=await User.findById(user._id).select(
+        "-refreshToken"
     )
 
     //in above syntex ,
@@ -117,9 +144,9 @@ const registerUser=asyncHandler(async (req,res)=>{
     
 
 
-    res.status(200).json({
-        message:"ok"
-    })
+    // res.status(200).json({
+    //     message:"ok"
+    // })
 })
-
 export {registerUser}
+

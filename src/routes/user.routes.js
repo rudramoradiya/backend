@@ -5,6 +5,7 @@ import {upload} from "../middlewares/multer.middleware.js"
 const router=Router()
 
 router.route("/register").post(
+    
     upload.fields([
         {
             name:"avatar",  //in frontend we have to give the same name 
@@ -15,7 +16,7 @@ router.route("/register").post(
             maxCount:1
         }
     ]),
-    registerUser
+    registerUser,
 )
 
 

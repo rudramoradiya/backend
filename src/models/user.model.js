@@ -57,11 +57,23 @@ const userSchema=new Schema(
 // pre hook of mongoose
 //used to apply change just before the event hit
 // here we cannot use the array function because it can not have the contex
-userSchema.pre("save",async function(next){
-    if(!this.isModified("password")) return next(); //bassic syntax
-    this.password=bcrypt.hash(this.password,10)      //hash take parameter:jema tame change akrva mango e , number of rounds
-    next()
+
+//just for testing
+// userSchema.pre("save", function (next) {
+//   console.log("pre save running");
+//   next();
+// });
+
+userSchema.pre("save",async function(){
+    if(!this.isModified("password")) {
+        return ;
+     } //bassic syntax
+    this.password=await bcrypt.hash(this.password,10);      //hash take parameter:jema tame change akrva mango e , number of rounds
+    console.log("password is :",this.password);
+    
 } )
+
+
 
 
 // make the custome hooks to check the password is correct or not 
