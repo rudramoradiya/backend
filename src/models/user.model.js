@@ -69,7 +69,7 @@ userSchema.pre("save",async function(){
         return ;
      } //bassic syntax
     this.password=await bcrypt.hash(this.password,10);      //hash take parameter:jema tame change akrva mango e , number of rounds
-    console.log("password is :",this.password);
+    // console.log("password is :",this.password);
     
 } )
 

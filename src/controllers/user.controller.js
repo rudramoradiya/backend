@@ -2,7 +2,7 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 import {ApiError} from "../utils/ApiError.js"
 import {User} from "../models/user.model.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
-import {uploadFileToCloudinary} from "../utils/cloudinary.js"
+import {uploadOnCloudinary} from "../utils/cloudinary.js"
 
 // it give the controll of the user
 const registerUser = asyncHandler( async (req, res) => {
@@ -91,11 +91,8 @@ const registerUser = asyncHandler( async (req, res) => {
     // step 5: upload them to cloudnary ,avatar
 
     
-    const avatar= await uploadFileToCloudinary(avatarLocalPath)
-//     const coverImage = coverImageLocalPath
-//   ? await uploadFileToCloudinary(coverImageLocalPath)
-//   : null
-    const coverImage= await uploadFileToCloudinary(coverImageLocalPath)
+    const avatar= await uploadOnCloudinary(avatarLocalPath)
+    const coverImage= await uploadOnCloudinary(coverImageLocalPath)
 
     if(!avatar){
         throw new ApiError(400,"avatar or coverImage required")
@@ -116,7 +113,7 @@ const registerUser = asyncHandler( async (req, res) => {
     //check user is created or not 
 
     const createdUser=await User.findById(user._id).select(
-        "-refreshToken"
+        "-password -refreshToken"
     )
 
     //in above syntex ,
