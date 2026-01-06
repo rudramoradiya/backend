@@ -1,6 +1,7 @@
 import {Router} from "express"
-import { registerUser } from "../controllers/user.controller.js"
+import { registerUser,loginUser, logOutUser } from "../controllers/user.controller.js"
 import {upload} from "../middlewares/multer.middleware.js"
+import { verifyJWT } from "../middlewares/auth.middleware.js"
 
 const router=Router()
 
@@ -18,6 +19,15 @@ router.route("/register").post(
     ]),
     registerUser,
 )
+
+//here we use the post method because we take the information from tthe user
+router.route("/login").post(loginUser)
+
+//here we take the verification from the auth verification
+
+//secured routes
+router.route("/logout").post(verifyJWT,logOutUser)
+
 
 
 export {router}

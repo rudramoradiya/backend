@@ -82,6 +82,10 @@ userSchema.methods.isPasswordCorrect = async function (password){
     return await bcrypt.compare(password,this.password)      // because of creptography it take the time so we have to use the await statement 
 }
 
+// accesstoken : long lived
+                //  use to validate the user
+ 
+
 userSchema.methods.generateAccessToken = function (){
     return jwt.sign(  //this method generate the token
     {
@@ -96,6 +100,13 @@ userSchema.methods.generateAccessToken = function (){
     }
 )
 }
+
+// refreshtoken : short lived
+// use of the refreshtoken is when user have limited time to login and session expire at that time user have to use the refresh token
+// here user have to hit the end point 
+// refresh token is store at both the side one at the database and another is user have 
+// if both the token is matched at that time to user provide the another accesstoken 
+
 
 userSchema.methods.generateRefreshToken = async function (){
     return jwt.sign(  //this method generate the token

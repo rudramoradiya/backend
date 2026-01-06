@@ -3,6 +3,28 @@ import {ApiError} from "../utils/ApiError.js"
 import {User} from "../models/user.model.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import { response } from "express"
+
+const generateAccessAndRefreshTokens=async (useID)=>{
+    try {
+
+        const user=await User.findById(useID)
+        const accessToken=user.generateAccessToken()
+        const refreshToken=user.generateRefreshToken()
+
+        //here we have to save the refresh token to the database
+
+        user.refreshToken=refreshToken
+        //we have to save the detailes without validating the defore anything 
+        // because of the database work it take the time hence we have to use the await 
+        user.save({validateBeforeSave:false})
+        
+        return {refreshToken,accessToken}
+    
+    } catch (error) {
+        throw new ApiError(500,"this is error while generating the refresh or access token")
+    }
+}
 
 // it give the controll of the user
 const registerUser = asyncHandler( async (req, res) => {
@@ -145,5 +167,117 @@ const registerUser = asyncHandler( async (req, res) => {
     //     message:"ok"
     // })
 })
-export {registerUser}
+
+const loginUser=asyncHandler(async (req,res)=>{
+    //get the data from the req.body
+    //username and email
+    //find the user
+    //password check
+    //access and refresh token
+    //send cookie 
+
+
+    // access the data from the body 
+    const{email,username,password}=req.body
+
+    //username and email check 
+    if(!email || !username){
+        throw new ApiError(400,"username or email not found ")
+    }
+
+    //find the user
+    // this find the user based on the username or email 
+    // because the database is in the another continent we have to add the await 
+    //$or:-is the operator of the mongodb 
+
+    const user =User.findOne({
+        $or:[{username},{email}]
+    })
+
+    //if user not found 
+
+    if(!user){
+    throw new ApiError(404,"User does not exists")
+    }
+
+    //if user found 
+
+    const isPassWord=await user.isPasswordCorrect(password)
+     
+    if(!isPassWord){
+    throw new ApiError(401,"invalid user crediatial ")
+    }
+
+    // here we have to generate the access and refresh token multiple time so we make the function of it 
+
+    const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(user._id)
+
+    // then we have to send the data to cookie 
+
+    // here first decide that what data should not be send to user
+
+    const loggedInUser=await User.findById(user._id).select("-password,-refreshToken")
+
+    // to make the cookie we have to design like object 
+
+    const options ={
+        httpOnly:true,
+        secure:true,
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken",accessToken,options)
+    .cookie("refreshToken",refreshToken,options)
+    .json(
+        new ApiResponse(
+            200,{
+                user:loggedInUser,accessToken,refreshToken
+
+            },
+            "user login successfully"
+        )
+    )
+
+})
+
+// logout the user
+
+const logOutUser=asyncHandler(async(req,res)=>{
+
+    //here we have to do two task
+    // 1--> remove the cookie 
+    // 2--> clear the refreshtoken 
+
+    User.findByIdAndUpdate(
+       await req.user._id,
+        {
+            //use the method of the mongodb to set the refreshtoken as undifined
+            $set:{
+                refreshToken:undefined
+            }
+        },
+        {
+            new:true
+        }
+    )
+
+    const options ={
+        httpOnly:true,
+        secure:true,
+    }
+
+    return res
+    .status(200)
+    .clearCookie("accessToken",options)
+    .clearCookie("refreshToken",options)
+    .json(new ApiResponse(200,{},"user logged out "))
+
+
+})
+export {
+    registerUser,
+    loginUser,
+    logOutUser
+}
 
