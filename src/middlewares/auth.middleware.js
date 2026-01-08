@@ -24,7 +24,7 @@ try {
         const user=await User.findById(decodedToken?._id).select("-password -refreshToken")
     
         if(!user){
-            //TODO:discuuss about the frontend
+          
             throw new ApiError(401,"invalid access token")
         }
     
