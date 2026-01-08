@@ -281,37 +281,49 @@ const logOutUser=asyncHandler(async(req,res)=>{
 
 })
 
-
+// here we have to make the endpoint where we refresh the access token
 const refreshAccessToken = asyncHandler(async (req, res) => {
+
+    //find the token from the user side
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
+    //this condition verify that thoken is coming or not 
     if (!incomingRefreshToken) {
         throw new ApiError(401, "unauthorized request")
     }
 
     try {
+
+        //decode the token coming from the user and verify with the token held into the database 
         const decodedToken = jwt.verify(
             incomingRefreshToken,
             process.env.REFRESH_TOKEN_SECRET
         )
     
+        // find the user from the decodedToken
         const user = await User.findById(decodedToken?._id)
     
+        //check if the user is found or not and if the user not found give the error name invalid refresh token 
         if (!user) {
             throw new ApiError(401, "Invalid refresh token")
         }
+
+        //here when we create the refreshtoken we save it into the user
+        //so we have to match the incoming refreshToken and refreshToken held at the database 
     
         if (incomingRefreshToken !== user?.refreshToken) {
             throw new ApiError(401, "Refresh token is expired or used")
             
         }
+
+
     
         const options = {
             httpOnly: true,
             secure: true
         }
     
-        const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
+        const {accessToken, newRefreshToken} = await generateAccessAndRefreshTokens(user._id)
     
         return res
         .status(200)
