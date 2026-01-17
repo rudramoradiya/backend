@@ -1,5 +1,5 @@
 import {Router} from "express"
-import { registerUser,loginUser, logOutUser ,refreshAccessToken,updateUserCoverImage} from "../controllers/user.controller.js"
+import { registerUser,loginUser, logOutUser ,refreshAccessToken,updateUserCoverImage, getCurrentUser, updateAccountDetails, updateUserAvatar, getUserChannelProfile, getWatchHistory} from "../controllers/user.controller.js"
 import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
 
@@ -31,16 +31,32 @@ router.route("/logout").post(verifyJWT,logOutUser)
 
 router.route("/refreshToken").post(refreshAccessToken)
 
-router.route("/updatecoverimage").post(
-    upload.fields([
-        
-        {
-            name:"coverImage",
-            maxCount:1
-        }
-    ]),
-    
-    updateUserCoverImage)
+//change the password 
+
+router.route("/changePassword").post(verifyJWT,createNewPassword)
+
+//getting the currunt user
+router.route("/current-user").get(verifyJWT,getCurrentUser)
+
+//update account details 
+router.route("/update-account-details").patch(updateAccountDetails)  // here the patch is used because change in only updated details not in all 
+
+// update the avatar
+
+router.route("/avatar").patch(verifyJWT,upload.single("avatar"),updateUserAvatar)
+
+// update the coverImage
+
+router.route("/coverImage").patch(verifyJWT,upload.single("coverImage"),updateUserCoverImage)
+
+// get the user profile 
+//here we take the data from the params so we have to /c/:username use this type of syntax
+
+router.route("/c/:username").get(verifyJWT,getUserChannelProfile)
+
+// ger the watchhistory 
+
+router.route("/history").get(verifyJWT,getWatchHistory)
 
 
 
