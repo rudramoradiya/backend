@@ -1,5 +1,5 @@
 import {Router} from "express"
-import { registerUser,loginUser, logOutUser ,refreshAccessToken} from "../controllers/user.controller.js"
+import { registerUser,loginUser, logOutUser ,refreshAccessToken,updateUserCoverImage} from "../controllers/user.controller.js"
 import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
 
@@ -20,8 +20,9 @@ router.route("/register").post(
     registerUser,
 )
 
-//here we use the post method because we take the information from tthe user
-router.route("/login").post(loginUser)
+//here we use the post method because we take the information from the user
+// Accept `application/json` and `multipart/form-data` (no files) for login
+router.route("/login").post(upload.none(), loginUser)
 
 //here we take the verification from the auth verification
 
@@ -29,6 +30,17 @@ router.route("/login").post(loginUser)
 router.route("/logout").post(verifyJWT,logOutUser)
 
 router.route("/refreshToken").post(refreshAccessToken)
+
+router.route("/updatecoverimage").post(
+    upload.fields([
+        
+        {
+            name:"coverImage",
+            maxCount:1
+        }
+    ]),
+    
+    updateUserCoverImage)
 
 
 
